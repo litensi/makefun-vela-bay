@@ -1,6 +1,7 @@
-import { createCity, jobs, random } from './city.js';
+import { interactActivity, nearbyActivity, updateRace } from './activities.js';
+import { createCity, garage, jobs, raceRoute, random } from './city.js';
 import { nearestCar, playerAt, populate, toggleCar, updateActors } from './actors.js';
-import { interactJob, nearbyJob, readSave, restore, save, updateMission } from './missions.js';
+import { interactJob, nearbyJob, nextJob, readSave, restore, save, updateMission } from './missions.js';
 import { applyPose } from './poses.js';
 import { createView, drawRadar } from './world-view.js';
 
@@ -16,7 +17,7 @@ let mode='title',s;
 function fresh(worldSeed,data){
   const city=createCity(worldSeed);
   s={seed:worldSeed,city,rng:random(worldSeed+51),pose,player:playerAt(),...populate(city,worldSeed),
-    bullets:[],police:[],skids:[],time:0,cooldown:0,wanted:0,unseen:0,alert:false,spawn:0,
+    bullets:[],police:[],guards:[],skids:[],effects:[],heli:null,race:null,time:0,cooldown:0,wanted:0,unseen:0,alert:false,spawn:0,
     done:[],job:null,stage:null,notice:'',noticeTime:0,autosave:0};
   restore(s,data);
 }
@@ -26,7 +27,7 @@ function menu(next){
   $('menu').hidden=next==='play';
   $('menu').classList.toggle('pause',next==='pause');
   $('menu-title').innerHTML=next==='pause'?'GAME<span>PAUSED</span>':'VELA<span>BAY</span>';
-  $('menu-copy').textContent=next==='pause'?'Take a breath. The bay can wait.':'Two jobs. One hot afternoon.';
+  $('menu-copy').textContent=next==='pause'?'Take a breath. The bay can wait.':'Follow the money through Vela Bay.';
   $('new').hidden=next!=='title';
   $('continue').hidden=next!=='title'||!readSave()||Boolean(pose);
   $('resume').hidden=$('exit').hidden=next!=='pause';
@@ -52,7 +53,7 @@ window.addEventListener('keydown',e=>{
   if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(key))e.preventDefault();
   input.keys.add(key);
   if(key==='e'&&!e.repeat){
-    if(!interactJob(s)&&toggleCar(s))save(s);
+    if(interactJob(s)||interactActivity(s)||toggleCar(s))save(s);
   }
 });
 window.addEventListener('keyup',e=>input.keys.delete(e.key.toLowerCase()));
@@ -70,20 +71,27 @@ function set(id,content){
 function hud(){
   const p=s.player,job=jobs[s.job];
   set('district',p.x>1650?'VESPER WATERFRONT':p.y<880?'MARKET ROW':'SOUTH QUAY');
-  set('objective-label',s.wanted?'WANTED':job?'ACTIVE CONTRACT':s.done.length===2?'CONTRACTS COMPLETE':'FREE ROAM');
-  set('objective-text',s.wanted?'Lose the police':job?job.name:s.done.length===2?'The bay is yours':'Find a contact');
-  set('objective-detail',s.wanted?'Break line of sight and stay out of sight.':job?s.stage==='escape'?'Break line of sight to collect your payout.':job.detail:s.done.length===2?'Both jobs paid out. Explore Vela Bay.':'Follow a mint marker to pick up a job.');
+  const next=jobs[nextJob(s)],race=s.race;
+  set('objective-label',race?'STREET RACE':job?'ACTIVE CONTRACT':s.wanted?'WANTED':next?'FREE ROAM':'CONTRACTS COMPLETE');
+  set('objective-text',race?'Quay Circuit':job?job.name:s.wanted?'Lose the police':next?'Find a contact':'The bay is yours');
+  set('objective-detail',race?race.clock<0?'Starting in '+Math.ceil(-race.clock):
+    'Checkpoint '+race.next+'/'+(raceRoute.length-1)+' · Kira '+Math.min(race.rivalNext,raceRoute.length-1)+'/'+(raceRoute.length-1)+' · '+race.clock.toFixed(1)+'s':
+    s.stage==='escape'||(s.wanted&&!job)?'Break line of sight or drive to the Pay & Spray.':
+    job?job.detail:next?'Meet '+next.by+' at the mint marker.':'Three contracts paid out.');
   if(hudCache.stars!==s.wanted){
     hudCache.stars=s.wanted;$('stars').innerHTML='<b>'+'★'.repeat(s.wanted)+'</b>'+'☆'.repeat(5-s.wanted);
     $('stars').setAttribute('aria-label',s.wanted+' of 5 wanted stars');
   }
-  set('heat',s.wanted?s.alert?'POLICE IN PURSUIT':'OUT OF SIGHT':'NO ACTIVE WARRANT');
+  set('heat',s.wanted?s.heli?.lock?'SEARCHLIGHT LOCK':s.alert?'POLICE IN PURSUIT':s.heli?'AIR UNIT SEARCHING':'OUT OF SIGHT':'NO ACTIVE WARRANT');
   const hp=Math.ceil(p.hp);
   set('hp',hp+'%');$('health').style.width=hp+'%';
   set('cash','$'+p.cash.toLocaleString('en-US'));
-  set('mode',p.car?'DRIVING  /  '+Math.round(Math.abs(p.car.speed)*.36)+' KM/H  /  SPACE DRIFT':'ON FOOT  /  SHIFT SPRINT  /  LMB FIRE');
+  set('mode',p.car?.air?'AIRBORNE':p.car?'DRIVING  /  '+Math.round(Math.abs(p.car.speed)*.36)+' KM/H  /  SPACE DRIFT':'ON FOOT  /  SHIFT SPRINT  /  LMB FIRE');
   const near=nearbyJob(s);
-  set('prompt',near?'E   /   '+(near.active?'Complete objective':'Speak to contact'):
+  const activity=nearbyActivity(s);
+  set('prompt',near&&!p.car?'E   /   '+(near.active?'Complete objective':'Speak to contact'):
+    activity==='garage'&&p.car&&s.wanted?'E   /   Respray · $'+garage.fee:
+    activity==='race'&&p.car?'E   /   Enter Quay Circuit':
     p.car?'E   /   Exit vehicle':nearestCar(s)?'E   /   Take vehicle':'');
   set('toast',s.noticeTime>0?s.notice:'');
   drawRadar($('minimap'),s);
@@ -99,7 +107,7 @@ function frame(now){
     s.time+=dt;s.noticeTime-=dt;s.autosave+=dt;
     const world=view.worldPoint(input.mouse.screenX,input.mouse.screenY);
     Object.assign(input.mouse,world);
-    updateActors(s,input,dt);updateMission(s);
+    updateActors(s,input,dt);updateRace(s,dt);updateMission(s);
     if(s.autosave>3){s.autosave=0;save(s);}
   }
   view.draw(s,mode==='title');

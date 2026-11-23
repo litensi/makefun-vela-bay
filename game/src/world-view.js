@@ -1,3 +1,5 @@
+import { drawAirLight, drawHelicopter, drawImpacts } from './action-art.js';
+import { activityMarkers } from './activities.js';
 import { clamp, BLOCK, ROAD, SHORE, SIZE } from './city.js';
 import { paintGround } from './city-art.js';
 import { markers } from './missions.js';
@@ -21,8 +23,8 @@ export function createView(canvas){
   const camera={x:0,y:0,z:1};
   function draw(s,title){
     if(source!==s.city){source=s.city;ground=paintGround(s.city,s.seed);}
-    const z=clamp(width/970,.87,1.75)*(title?.88:1);
-    const center=title?{x:1580,y:1050}:s.player;
+    const z=clamp(width/970,.87,1.75)*(title?.88:s.pose==='mission'?1.34:s.pose==='chase'?1.14:1);
+    const center=title?{x:1580,y:1050}:s.pose==='mission'?{x:1650,y:1372}:s.player;
     camera.x=clamp(center.x-width/(2*z),0,Math.max(0,ground.width-width/z));
     camera.y=clamp(center.y-height/(2*z),0,Math.max(0,SIZE-height/z));
     camera.z=z;
@@ -30,11 +32,13 @@ export function createView(canvas){
     box(g,'#315f62',0,0,width,height);
     g.scale(z,z);g.translate(-camera.x,-camera.y);
     g.drawImage(ground,0,0);
+    if(s.heli)drawAirLight(g,s.heli);
     for(const t of s.skids){
       const dx=Math.cos(t.a),dy=Math.sin(t.a),alpha=t.life/2.2;
       for(const side of [-1,1])stroke(g,'rgba(30,35,34,'+alpha*.44+')',1.5,t.x-dy*side*6,t.y+dx*side*6,t.x+dx*7-dy*side*6,t.y+dy*7+dx*side*6);
     }
     for(const c of s.cars)drawCar(g,c,c===s.player.car);
+    if(s.race)drawCar(g,s.race.rival,false);
     for(const p of s.people)drawPerson(g,p,p.shirt);
     for(const p of s.police){
       const cruiser=p.car??(p.cruiser?{...p,color:'#dbe6db'}:null);
@@ -45,13 +49,16 @@ export function createView(canvas){
       }
       if(!p.cruiser)drawPerson(g,p,'#285676',true,true);
     }
+    for(const p of s.guards)drawPerson(g,p,'#a34b58',true);
     if(!s.player.car&&!title){
       g.lineWidth=1.2;g.strokeStyle='#ffefd6';g.beginPath();
       g.arc(s.player.x,s.player.y,9,0,Math.PI*2);g.stroke();
       drawPerson(g,s.player,'#ec8b66',true);
     }
     for(const b of s.bullets)stroke(g,b.police?'#ffd3a0':'#fff2ad',1.8,b.x,b.y,b.x-Math.cos(b.a)*12,b.y-Math.sin(b.a)*12);
-    if(!title)for(const m of markers(s))drawMarker(g,m,s.time);
+    drawImpacts(g,s.effects);
+    if(s.heli)drawHelicopter(g,s.heli,s.time);
+    if(!title)for(const m of [...activityMarkers(s),...markers(s)])drawMarker(g,m,s.time);
     g.setTransform(ratio,0,0,ratio,0,0);
     if(!title){
       const v=g.createRadialGradient(width*.52,height*.48,height*.1,width*.52,height*.48,Math.max(width,height)*.69);
@@ -63,11 +70,15 @@ export function createView(canvas){
 }
 
 function drawCar(g,c,player,police=false,lit=false){
+  const lift=c.air?Math.sin(Math.PI*c.air/.76)*26:0;
   g.save();g.translate(c.x,c.y);g.rotate(c.a);
+  box(g,'#19323275',-13,-4,33,15);
+  g.restore();
+  g.save();g.translate(c.x,c.y-lift);g.rotate(c.a);
+  g.scale(1+lift*.005,1+lift*.005);
   if(player){
     g.strokeStyle='#b5ffe3';g.lineWidth=1;g.strokeRect(-18,-10,36,20);
   }
-  box(g,'#19323275',-13,-4,33,15);
   for(const x of [-9,8])for(const y of [-8,5])box(g,'#233135',x,y,6,3);
   box(g,'#303d3b',-16,-7,32,14);
   box(g,c.color,-15,-6,30,12);
@@ -98,9 +109,19 @@ function drawPerson(g,p,color,armed=false,police=false){
   g.restore();
 }
 function drawMarker(g,m,time){
-  const color=m.active?'#ffcb77':'#a7ffce', pulse=1+Math.sin(time*4)*.14;
-  oval(g,m.active?'#ffcb773b':'#a7ffce42',m.x,m.y,21*pulse,15*pulse);
+  const color=m.color??(m.active?'#ffcb77':'#a7ffce'), pulse=1+Math.sin(time*4)*.14;
+  oval(g,color+'42',m.x,m.y,21*pulse,15*pulse);
+  if(m.gate!==undefined){
+    const dx=Math.sin(m.gate)*27,dy=Math.cos(m.gate)*27;
+    stroke(g,color+'85',4,m.x-dx,m.y+dy,m.x+dx,m.y-dy);
+    for(const side of [-1,1]){
+      const x=m.x+dx*side,y=m.y-dy*side;
+      stroke(g,color,2,x,y,x,y-16);
+      oval(g,color,x,y-16,3,3);
+    }
+  }
   g.strokeStyle=color;g.lineWidth=1.5;g.beginPath();g.ellipse(m.x,m.y,16,11,0,0,Math.PI*2);g.stroke();
+  if(!m.label)return;
   stroke(g,color,1,m.x,m.y-10,m.x,m.y-25);
   g.font='800 10px Arial';g.textAlign='center';
   const w=g.measureText(m.label).width+18;
@@ -121,7 +142,9 @@ export function drawRadar(canvas,s){
   for(const b of s.city.buildings)box(g,'#324842',ox+b.x*scale,oy+b.y*scale,b.w*scale,b.h*scale);
   const pos=p=>[ox+p.x*scale,clamp(oy+p.y*scale,3,h-3)];
   for(let y=438;y<SIZE;y+=341)box(g,'#b3ac81',ox+SHORE*scale,oy+y*scale,11,2);
-  for(const m of markers(s))oval(g,m.active?'#ffd17e':'#9af3c2',...pos(m),3,3);
+  for(const m of [...activityMarkers(s),...markers(s)])oval(g,m.color??(m.active?'#ffd17e':'#9af3c2'),...pos(m),3,3);
+  if(s.race)oval(g,'#fa9fef',...pos(s.race.rival),2,2);
+  if(s.heli)oval(g,'#9ad7ff',...pos(s.heli),3,3);
   for(const p of s.police)oval(g,'#ff897a',...pos(p),2.5,2.5);
   const [x,y]=pos(s.player);
   g.save();g.translate(x,y);g.rotate(s.player.a);

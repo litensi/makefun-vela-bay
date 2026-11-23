@@ -1,3 +1,4 @@
+import { driveAirborne, impact, tryJump, updateAirUnit, updateEffects } from './effects.js';
 import { BLOCK, ROAD, SHORE, SIZE, START, random, clamp, distance, angleDelta, move, blocked, clearSight } from './city.js';
 
 const carColors=['#e6ece2','#d96554','#edba62','#49a69e','#687593','#d9d6b4'];
@@ -16,10 +17,14 @@ export function populate(city,seed) {
     cars.push({x,y,a:0,speed:0,color:carColors[(i+2)%carColors.length]});
   }
   cars.push({x:1134,y:1079,a:0,speed:0,color:'#e6a34f'});
-  for(let i=0;i<84;i++){
+  for(let i=0;i<155;i++){
     const vertical=i%2===0, axis=Math.floor(rng()*6)*BLOCK+ROAD+6, along=rng()*(vertical?SIZE:SHORE);
     const x=vertical?axis:along,y=vertical?along:axis;
     if(!blocked(city,x,y,6)) people.push({x,y,a:(vertical?Math.PI/2:0)+(i%4<2?0:Math.PI),shirt:shirts[i%5],pace:19+rng()*16,phase:rng()*9});
+  }
+  for(let i=0;i<38;i++){
+    const x=1710+rng()*35,y=600+rng()*1000;
+    if(!blocked(city,x,y,5))people.push({x,y,a:i%2?Math.PI/2:-Math.PI/2,shirt:shirts[i%5],pace:13+rng()*13,phase:rng()*9});
   }
   return {cars,people};
 }
@@ -31,6 +36,11 @@ export function raiseHeat(s,amount) {
   s.wanted=clamp(s.wanted+amount,0,5);
   s.unseen=0;
   s.alert=true;
+}
+
+export function clearHeat(s){
+  s.wanted=0;s.police=[];s.heli=null;s.unseen=0;s.alert=false;s.spawn=0;
+  s.bullets=s.bullets.filter(b=>!b.police||b.guard);
 }
 
 export function nearestCar(s) {
@@ -45,6 +55,7 @@ export function toggleCar(s) {
   const p=s.player;
   if(p.car){
     const c=p.car;
+    if(c.air)return true;
     for(const angle of [c.a+Math.PI/2,c.a-Math.PI/2,c.a+Math.PI,c.a]){
       const x=c.x+Math.cos(angle)*27,y=c.y+Math.sin(angle)*27;
       if(blocked(s.city,x,y,8)) continue;
@@ -66,12 +77,20 @@ function drive(s,k,dt) {
   const p=s.player,c=p.car,drift=k.has(' ');
   const gas=Number(k.has('w')||k.has('arrowup'))-Number(k.has('s')||k.has('arrowdown'));
   const turn=Number(k.has('d')||k.has('arrowright'))-Number(k.has('a')||k.has('arrowleft'));
+  if(c.air){
+    driveAirborne(s,c,dt);p.x=c.x;p.y=c.y;return;
+  }
+  if(s.race?.clock<0){c.speed=0;return;}
   c.speed=clamp((c.speed+gas*235*dt)*Math.exp(-(drift?1.5:gas?.55:1.9)*dt),-90,330);
   if(Math.abs(c.speed)>7)c.a+=turn*(drift?3.35:2.35)*Math.min(1,Math.abs(c.speed)/68)*Math.sign(c.speed)*dt;
   c.travel+=angleDelta(c.a,c.travel)*Math.min(1,dt*(drift?2:12));
   const vx=Math.cos(c.travel)*c.speed,vy=Math.sin(c.travel)*c.speed;
   if(drift && turn && Math.abs(c.speed)>55) s.skids.push({x:c.x-vx*.041,y:c.y-vy*.041,a:c.travel,life:2.2});
-  if(move(s.city,c,vx*dt,vy*dt,12)) c.speed*=-.28;
+  if(move(s.city,c,vx*dt,vy*dt,12)){
+    if(Math.abs(c.speed)>65)impact(s,c.x+Math.cos(c.travel)*13,c.y+Math.sin(c.travel)*13);
+    c.speed*=-.28;
+  }
+  tryJump(s,c);
   p.x=c.x;p.y=c.y;p.a=c.a;
 }
 export function updateActors(s,input,dt) {
@@ -97,7 +116,7 @@ export function updateActors(s,input,dt) {
     if(c.ai){
       c.x=(c.x+Math.cos(c.a)*c.speed*dt+SHORE)%SHORE;
       c.y=(c.y+Math.sin(c.a)*c.speed*dt+SIZE)%SIZE;
-      if(distance(c,p)<17){
+      if(!p.car?.air&&distance(c,p)<17){
         if(!p.car)p.hp=Math.max(0,p.hp-dt*22);
         else p.car.speed*=Math.exp(-3*dt);
       }
@@ -115,19 +134,34 @@ export function updateActors(s,input,dt) {
     person.phase+=dt*(scared?17:8);
   }
   updatePolice(s,dt);
+  for(const guard of s.guards){
+    const range=distance(guard,p);
+    if(range>215||!clearSight(s.city,guard,p))continue;
+    guard.a=Math.atan2(p.y-guard.y,p.x-guard.x);
+    guard.shot-=dt;
+    if(guard.shot<=0){
+      fire(s,guard.x,guard.y,guard.a,true);
+      s.bullets.at(-1).guard=true;
+      guard.shot=1.45+s.rng()*.55;
+    }
+  }
   for(const b of s.bullets){
     b.life-=dt;
     b.x+=Math.cos(b.a)*480*dt;b.y+=Math.sin(b.a)*480*dt;
-    if(blocked(s.city,b.x,b.y)){b.life=0;continue;}
+    if(blocked(s.city,b.x,b.y)){impact(s,b.x,b.y);b.life=0;continue;}
     if(b.police){
-      if(distance(b,p)<(p.car?16:9)){p.hp=Math.max(0,p.hp-(p.car?7:13));b.life=0;}
+      if(!p.car?.air&&distance(b,p)<(p.car?16:9)){p.hp=Math.max(0,p.hp-(p.car?7:13));impact(s,b.x,b.y,!p.car);b.life=0;}
     }else{
-      const officer=s.police.find(o=>distance(o,b)<(o.cruiser?15:10));
+      const officer=s.police.find(o=>o.hp>0&&distance(o,b)<(o.cruiser?15:10));
+      const guard=s.guards.find(o=>o.hp>0&&distance(o,b)<10);
       const person=s.people.find(o=>!o.down&&distance(o,b)<9);
-      if(officer){officer.hp--;raiseHeat(s,1);b.life=0;}
-      else if(person){person.down=true;raiseHeat(s,1);b.life=0;}
+      if(officer){officer.hp--;impact(s,b.x,b.y,!officer.cruiser);raiseHeat(s,1);b.life=0;}
+      else if(guard){guard.hp--;impact(s,b.x,b.y,true);b.life=0;}
+      else if(person){person.down=true;impact(s,b.x,b.y,true);raiseHeat(s,1);b.life=0;}
     }
   }
+  s.guards=s.guards.filter(o=>o.hp>0);
+  updateEffects(s,dt);
   s.police=s.police.filter(o=>o.hp>0);
   s.bullets=s.bullets.filter(b=>b.life>0);
   s.skids=s.skids.filter(t=>(t.life-=dt)>0);
@@ -135,6 +169,7 @@ export function updateActors(s,input,dt) {
 
 function updatePolice(s,dt) {
   const p=s.player;
+  let seen=updateAirUnit(s,dt);
   if(!s.wanted){s.police=[];return;}
   s.spawn-=dt;
   if(s.police.length<Math.min(9,s.wanted*2) && s.spawn<=0){
@@ -152,7 +187,6 @@ function updatePolice(s,dt) {
     }
     s.spawn=1.2;
   }
-  let seen=false;
   for(const officer of s.police){
     const range=distance(officer,p);
     const visible=range<235 && clearSight(s.city,officer,p);
@@ -182,6 +216,6 @@ function updatePolice(s,dt) {
   s.alert=seen;
   s.unseen=seen?0:s.unseen+dt;
   if(s.unseen>9+s.wanted){
-    s.wanted=0;s.police=[];s.notice='Heat cleared';s.noticeTime=3;
+    clearHeat(s);s.notice='Heat cleared';s.noticeTime=3;
   }
 }
