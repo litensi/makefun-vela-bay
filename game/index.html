@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vela Bay</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="game" aria-label="Vela Bay">
+  <canvas id="scene" aria-label="Vela Bay city"></canvas>
+  <section id="title" class="screen" aria-label="Title screen">
+    <div class="title-copy">
+      <p class="eyebrow"><i></i> WELCOME TO THE GOLD COAST</p>
+      <h1><span>VELA</span><span>BAY</span></h1>
+      <p class="subtitle">a crime story in the sun</p>
+      <div class="title-actions"><button id="start" class="primary">Start <span>↗</span></button><button id="continue">Continue <span>↗</span></button></div>
+    </div>
+    <div class="title-footer"><span>VELA BAY <b>◆</b> GOLD COAST</span><span>01 / SUNSET DISTRICT</span></div>
+  </section>
+  <section id="hud" class="screen" hidden aria-label="Game information">
+    <div class="district"><div class="sigil">V<span>B</span></div><div><span id="district">SUNSET DISTRICT</span><small>VELA BAY</small></div></div>
+    <div class="objective" id="objective" hidden><span class="diamond">◆</span><div><small id="job-type"></small><strong id="goal"></strong></div><b id="range"></b></div>
+    <div class="status">
+      <div class="money"><span>CASH</span><strong id="cash"></strong></div>
+      <div class="wanted" id="wanted"></div>
+      <div class="health"><span>+</span><div><i id="health"></i></div><b id="hp"></b></div>
+      <div class="evade" id="evade" hidden></div>
+    </div>
+    <div id="toast" role="status" hidden></div>
+    <div id="prompt" hidden></div>
+    <div class="controls" id="hint"></div>
+    <div class="map"><div class="map-label"><span>STREET MAP</span><span id="map-side">LOCAL</span></div><canvas width="188" height="140" id="radar" aria-label="Minimap"></canvas></div>
+    <button class="pause-button" id="pause-button" aria-label="Pause game">Ⅱ</button>
+  </section>
+  <section id="pause" class="screen overlay" hidden aria-label="Pause menu">
+    <article><p class="eyebrow">VELA BAY</p><h2 id="pause-title">Paused</h2><dl id="key-guide">
+      <dt>WASD</dt><dd>Move / throttle, brake and steer</dd>
+      <dt>Mouse / LMB</dt><dd>Aim / fire pistol</dd>
+      <dt>Space</dt><dd>Sprint</dd>
+      <dt>F</dt><dd>Enter parked vehicle / exit vehicle</dd>
+      <dt>E</dt><dd>Hold at a driver’s door to carjack / exit</dd>
+      <dt>Esc</dt><dd>Pause / resume</dd>
+    </dl><button id="resume" class="primary">Resume <span>↗</span></button><button id="to-title">Title screen <span>↗</span></button></article>
+  </section>
+</main>
+<script>
+  // Local Chromium blocks module imports from file URLs. The classic build
+  // contains the same game and lets the entry run by double-clicking it.
+  const entry = document.createElement('script');
+  if (location.protocol === 'file:') entry.src = 'offline.js';
+  else { entry.type = 'module'; entry.src = 'src/main.js'; }
+  document.body.append(entry);
+</script>
+</body>
+</html>
