@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101f21">
+<title>Vela Bay</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<canvas id="city" aria-label="Vela Bay game world"></canvas>
+<header id="brand"><span class="mark">◈</span> VELA BAY <span class="muted">/</span> <span id="district">SOUTH QUAY</span></header>
+<main id="hud" hidden>
+  <section id="objective"><small id="objective-label"></small><strong id="objective-text"></strong><span id="objective-detail"></span></section>
+  <section id="status"><div id="stars" aria-label="Wanted level"></div><div id="heat"></div><div class="health-label"><span>VITALS</span><span id="hp"></span></div><div class="meter"><i id="health"></i></div><div id="cash"></div></section>
+  <section id="radar"><canvas id="minimap" width="174" height="130" aria-label="City minimap"></canvas><div><span>VESPER COAST</span><span>↑ N</span></div></section>
+  <aside id="prompt"></aside>
+  <footer><span id="mode"></span><span><kbd>WASD</kbd> Move <kbd>E</kbd> Interact <kbd>ESC</kbd> Pause</span></footer>
+  <div id="toast" role="status"></div>
+</main>
+<section id="menu" aria-label="Game menu">
+  <div class="menu-content">
+    <div class="eyebrow"><i></i> VESPER COAST · OPEN WORLD</div>
+    <h1 id="menu-title">VELA<span>BAY</span></h1>
+    <p id="menu-copy">Two jobs. One hot afternoon.</p>
+    <div id="actions"><button id="continue" hidden>Continue</button><button id="new">New game</button><button id="resume" hidden>Resume</button><button id="exit" hidden>Save &amp; title</button></div>
+  </div>
+  <div class="menu-footer"><span>◈ &nbsp; SOUTH QUAY, VELA BAY</span><span>KEYBOARD + MOUSE</span></div>
+</section>
+<script type="module" src="./src/game.js"></script>
+</body>
+</html>
