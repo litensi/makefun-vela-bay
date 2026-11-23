@@ -19,3 +19,4 @@ const dossier = buildDossier(outputDir, {
   game_path_max_bytes: 1000,
 });
 writeFileSync(join(outputDir, 'dossier.json'), dossier);
+// revision 2

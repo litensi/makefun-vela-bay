@@ -214,3 +214,4 @@ function drawPalm(g,{x,y,r}){
   }
   oval(g,'#c0ba78',x-2,y-8,2,2);
 }
+// revision 2

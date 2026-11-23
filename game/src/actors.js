@@ -219,3 +219,4 @@ function updatePolice(s,dt) {
     clearHeat(s);s.notice='Heat cleared';s.noticeTime=3;
   }
 }
+// revision 2

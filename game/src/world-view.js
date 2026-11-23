@@ -150,3 +150,4 @@ export function drawRadar(canvas,s){
   g.save();g.translate(x,y);g.rotate(s.player.a);
   g.fillStyle='#fff4d2';g.beginPath();g.moveTo(5,0);g.lineTo(-3,-3);g.lineTo(-2,0);g.lineTo(-3,3);g.closePath();g.fill();g.restore();
 }
+// revision 2

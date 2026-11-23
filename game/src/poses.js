@@ -36,3 +36,4 @@ export function applyPose(s,pose){
   for(let i=0;i<18;i++)s.skids.push({x:car.x-i*3.6,y:car.y+i*.67+i*i*.05,a:-.14-i*.015,life:2.1-i*.063});
   s.bullets.push({x:1580,y:1357,a:-.24,police:true});
 }
+// revision 2

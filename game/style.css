@@ -30,3 +30,4 @@ h1{font-size:clamp(75px,12.2vw,174px);font-weight:1000;line-height:.74;letter-sp
 #actions{display:flex;gap:9px;flex-wrap:wrap}button{background:var(--mint);color:var(--ink);border:0;padding:12px 21px;text-transform:uppercase;letter-spacing:.1em;font-size:12px;font-weight:900;cursor:pointer}#new{background:var(--coral)}#exit{background:var(--paper)}button:hover,button:focus-visible{background:var(--coral);outline:2px solid var(--paper);outline-offset:2px}
 #menu.pause{background:#102123bd}#menu.pause h1{font-size:clamp(65px,10vw,130px)}
 @media(max-width:630px){#brand,#objective,#radar{left:10px}#status{right:10px;width:130px}#stars{font-size:15px}#minimap{width:120px;height:auto}footer{padding:0 8px;font-size:9px}#prompt{left:auto;right:10px;transform:none;max-width:45vw}.menu-footer{padding:0 12px}}
+/* revision 2 */

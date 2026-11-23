@@ -65,3 +65,4 @@ export function move(city,actor,dx,dy,r) {
   if(!blocked(city,actor.x,actor.y+dy,r)) actor.y+=dy; else hit=true;
   return hit;
 }
+// revision 2

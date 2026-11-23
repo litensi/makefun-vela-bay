@@ -56,3 +56,4 @@ export function updateRace(s,dt){
     s.race=null;s.notice=won?'Quay Circuit won · +$400':'Kira Sol won the Quay Circuit';s.noticeTime=4;
   }
 }
+// revision 2

@@ -31,7 +31,10 @@ Continue restores your position, vitals, balance, vehicle, wanted level, and con
 
 Use `?shot=title&seed=1`, or replace `title` with `street`, `chase` or `mission`, for a frozen capture. Committed images are in [screenshots](screenshots/). For headless Chromium captures, pass `--enable-unsafe-swiftshader --use-angle=swiftshader`.
 
+Screenshots: 1 chase, 2 mission, 3 street, 4 title.
+
 ```sh
 mkdir -p out
 MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
+Revision marker: 2026-11-23.

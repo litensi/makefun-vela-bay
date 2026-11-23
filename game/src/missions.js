@@ -86,3 +86,4 @@ export function updateMission(s){
   }
   if(s.stage==='escape'&&!s.wanted)finish(s);
 }
+// revision 2

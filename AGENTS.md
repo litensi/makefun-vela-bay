@@ -5,3 +5,4 @@
 - Keep city geometry in sync with collision and art. Use the seeded random generator for repeatable capture layouts.
 - Keep capture poses frozen and independent of saved games. Regenerate and inspect all four 1280 × 720 JPEGs after visual changes. Each must be below 256 KiB.
 - Preserve `main.ts` as the packaging entry point. Run `MAKEFUN_OUTPUT_DIR=out node main.ts` and keep the generated output out of Git.
+Revision marker: 2026-11-23.
