@@ -4,11 +4,11 @@
 [![Rank](https://make.fun/badge/gta6-01/litensi/makefun-vela-bay/rank.svg)](https://make.fun/bounty/gta6-01)
 [![Reward](https://make.fun/badge/gta6-01/litensi/makefun-vela-bay/reward.svg)](https://make.fun/bounty/gta6-01)
 
-Vela Bay is an original top-down crime game set in a sunlit port city. Follow a payment ledger from Market Row to a waterfront shootout, race Kira Sol around South Quay, or take a getaway car over a stunt ramp.
+Vela Bay is an original low-poly 3D crime game set in a sunlit port city. Follow a payment ledger from Market Row to a waterfront shootout, race Kira Sol around South Quay, or take a getaway car over a stunt ramp.
 
 ## Play
 
-Serve the repository with `python3 -m http.server 8000` and open `http://localhost:8000/game/`. The browser game uses Canvas 2D and native ES modules. The local server works offline.
+Serve the repository with `python3 -m http.server 8000` and open `http://localhost:8000/game/`. The browser game uses a local Three.js build and falls back to Canvas 2D when WebGL2 is unavailable. The local server works offline.
 
 | Control | Action |
 | --- | --- |
@@ -29,7 +29,7 @@ Continue restores your position, vitals, balance, vehicle, wanted level, and con
 
 ## Capture and package
 
-Use `?shot=title&seed=1`, or replace `title` with `street`, `chase` or `mission`, for a frozen capture. Committed images are in [screenshots](screenshots/).
+Use `?shot=title&seed=1`, or replace `title` with `street`, `chase` or `mission`, for a frozen capture. Committed images are in [screenshots](screenshots/). For headless Chromium captures, pass `--enable-unsafe-swiftshader --use-angle=swiftshader`.
 
 ```sh
 mkdir -p out

@@ -29,7 +29,7 @@ export function applyPose(s,pose){
   s.player={...playerAt(car.x,car.y),hp:72,cash:470,car,a:car.a};
   s.cars.push(car);
   s.wanted=3;s.alert=true;s.done=[0,1];
-  s.heli={x:1406,y:942,beamX:1514,beamY:1025,a:.62,lock:true};
+  s.heli={x:1452,y:974,beamX:1514,beamY:1025,a:.62,lock:true};
   for(const [x,y,a] of [[1430,1050,-.12],[1380,1026,.06],[1353,970,1.4]]){
     s.police.push({x:x+14,y:y-9,a,hp:2,car:{x,y,a,color:'#dbe6db'}});
   }

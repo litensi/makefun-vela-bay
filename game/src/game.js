@@ -4,13 +4,14 @@ import { nearestCar, playerAt, populate, toggleCar, updateActors } from './actor
 import { interactJob, nearbyJob, nextJob, readSave, restore, save, updateMission } from './missions.js';
 import { applyPose } from './poses.js';
 import { createView, drawRadar } from './world-view.js';
+import { createView3D } from './render3d.js';
 
 const params=new URLSearchParams(location.search);
 const requested=params.get('shot');
 const pose=['title','street','chase','mission'].includes(requested)?requested:null;
 const seed=Number(params.get('seed')??1)>>>0;
 const $=id=>document.getElementById(id);
-const view=createView($('city'));
+const view=createView3D($('city'))??createView($('city'));
 const input={keys:new Set(),mouse:{x:0,y:0,screenX:0,screenY:0,down:false,active:false}};
 let mode='title',s;
 
