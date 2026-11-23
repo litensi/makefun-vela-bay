@@ -358,8 +358,8 @@ export function createView3D(canvas) {
       desired.set(p.x-99, 76, p.y+34);
       focus.set(p.x+52, 9, p.y+6);
     } else if (s.pose === 'chase') {
-      desired.set(1405, 24, 1084);
-      focus.set(1461, 42, 995);
+      desired.set(1435, 150, 1460);
+      focus.set(1557, 20, 1350);
     } else if (s.pose === 'mission') {
       desired.set(1548, 58, 1391);
       focus.set(1657, 5, 1362);

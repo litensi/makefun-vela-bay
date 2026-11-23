@@ -25,14 +25,14 @@ export function applyPose(s,pose){
     s.bullets.push({x:1638,y:1359,a:.13},{x:1659,y:1353,a:3.22,police:true},{x:1671,y:1378,a:-2.84,police:true});
     return;
   }
-  const car={x:1510,y:1025,a:-.33,travel:.2,speed:207,air:.50,color:'#d77252'};
+  const car={x:1615,y:1347,a:-.24,travel:.2,speed:207,air:.50,color:'#d77252'};
   s.player={...playerAt(car.x,car.y),hp:72,cash:470,car,a:car.a};
   s.cars.push(car);
   s.wanted=3;s.alert=true;s.done=[0,1];
-  s.heli={x:1452,y:974,beamX:1514,beamY:1025,a:.62,lock:true};
-  for(const [x,y,a] of [[1430,1050,-.12],[1380,1026,.06],[1353,970,1.4]]){
+  s.heli={x:1555,y:1310,beamX:1619,beamY:1347,a:.62,lock:true};
+  for(const [x,y,a] of [[1540,1376,-.12],[1490,1349,.06]]){
     s.police.push({x:x+14,y:y-9,a,hp:2,car:{x,y,a,color:'#dbe6db'}});
   }
   for(let i=0;i<18;i++)s.skids.push({x:car.x-i*3.6,y:car.y+i*.67+i*i*.05,a:-.14-i*.015,life:2.1-i*.063});
-  s.bullets.push({x:1474,y:1035,a:-.24,police:true});
+  s.bullets.push({x:1580,y:1357,a:-.24,police:true});
 }
