@@ -1,3 +1,4 @@
+// Defines the city layout and generates its geometry from a seed.
 export const SIZE = 2000;
 export const BLOCK = 330;
 export const ROAD = 82;

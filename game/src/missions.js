@@ -1,3 +1,4 @@
+// Manages mission progression, map markers, and saved game state.
 import { jobs, distance, START } from './city.js';
 import { playerAt, raiseHeat } from './actors.js';
 
