@@ -12,7 +12,9 @@ body{margin:0;overflow:hidden;background:#142b2d}
 small,.eyebrow,.health-label,#radar div,footer,.menu-footer,#heat{letter-spacing:.15em;font-weight:800;font-size:11px}
 #objective small{color:var(--mint)}#objective strong{display:block;font-size:21px;margin:5px 0}#objective-detail{font-size:13px;color:#dedac5}
 #status{top:25px;right:28px;width:186px;padding:13px 15px;border-top:2px solid var(--coral)}
-#stars{font-size:21px;letter-spacing:.13em;white-space:nowrap;color:#72908b}#stars b{color:#ffcb76}
+#stars{display:flex;align-items:center;gap:.13em;font-size:21px;height:1.2em;color:#72908b}
+#stars svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
+#stars .filled{color:#ffcb76;fill:currentColor}
 #heat{color:var(--coral);margin:4px 0 12px;font-size:9px}
 .health-label{display:flex;justify-content:space-between;color:#e7dfc5}.meter{height:5px;background:#3b5350;margin-top:5px}.meter i{display:block;height:100%;background:var(--mint)}
 #cash{margin-top:10px;font-size:20px;font-weight:900;color:var(--mint)}

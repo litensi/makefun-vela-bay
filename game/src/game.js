@@ -65,6 +65,7 @@ window.addEventListener('pointerup',()=>{input.mouse.down=false;});
 window.addEventListener('pointercancel',()=>{input.mouse.down=false;});
 
 let hudCache={};
+const wantedStar='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 15 8.6 21.8 9.6 16.9 14.4 18 21.2 12 18 6 21.2 7.1 14.4 2.2 9.6 9 8.6Z"/></svg>';
 function set(id,content){
   if(hudCache[id]===content)return;
   hudCache[id]=content;$(id).textContent=content;
@@ -80,8 +81,11 @@ function hud(){
     s.stage==='escape'||(s.wanted&&!job)?'Break line of sight or drive to the Pay & Spray.':
     job?job.detail:next?'Meet '+next.by+' at the mint marker.':'Three contracts paid out.');
   if(hudCache.stars!==s.wanted){
-    hudCache.stars=s.wanted;$('stars').innerHTML='<b>'+'★'.repeat(s.wanted)+'</b>'+'☆'.repeat(5-s.wanted);
-    $('stars').setAttribute('aria-label',s.wanted+' of 5 wanted stars');
+    hudCache.stars=s.wanted;
+    const stars=$('stars');
+    stars.innerHTML=wantedStar.repeat(5);
+    Array.from(stars.children).forEach((star,i)=>star.classList.toggle('filled',i<s.wanted));
+    stars.setAttribute('aria-label',s.wanted+' of 5 wanted stars');
   }
   set('heat',s.wanted?s.heli?.lock?'SEARCHLIGHT LOCK':s.alert?'POLICE IN PURSUIT':s.heli?'AIR UNIT SEARCHING':'OUT OF SIGHT':'NO ACTIVE WARRANT');
   const hp=Math.ceil(p.hp);
